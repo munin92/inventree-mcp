@@ -3,6 +3,12 @@ name: Docker
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to build (e.g. v1.0.0)"
+        required: true
+        default: "v1.0.0"
 
 jobs:
   build-push:
@@ -12,6 +18,8 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
 
       - uses: docker/metadata-action@v6
         id: meta
