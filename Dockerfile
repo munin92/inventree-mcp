@@ -1,11 +1,10 @@
-# inventree-mcp Docker image
-# renovate: datasource=docker registry=https://docker-hub.mlvdhmcntrl.uk depName=python
-FROM docker-hub.mlvdhmcntrl.uk/python:3.13-slim
+FROM python:3.14-slim
 
 WORKDIR /app
 
-RUN pip install --no-cache-dir \
-    "git+https://github.com/munin92/inventree-mcp@main"
+COPY . .
+
+RUN pip install --no-cache-dir .
 
 EXPOSE 8001
 
