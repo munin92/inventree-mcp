@@ -6,12 +6,30 @@ build-backend = "hatchling.build"
 name = "inventree-mcp"
 version = "0.1.0"
 description = "MCP server for InvenTree inventory management"
+readme = "README.md"
+license = { text = "MIT" }
 requires-python = ">=3.11"
+keywords = ["mcp", "inventree", "inventory", "llm", "claude"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 dependencies = [
     "fastmcp>=2.0.0",
     "httpx>=0.27.0",
     "pydantic-settings>=2.0.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/munin92/inventree-mcp"
+Repository = "https://github.com/munin92/inventree-mcp"
+Issues = "https://github.com/munin92/inventree-mcp/issues"
 
 [project.scripts]
 inventree-mcp = "inventree_mcp.server:main"
@@ -26,3 +44,6 @@ dev = [
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+
+[tool.hatch.version]
+path = "inventree_mcp/__init__.py"
