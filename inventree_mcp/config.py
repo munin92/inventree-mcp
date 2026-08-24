@@ -10,36 +10,34 @@ class Settings(BaseSettings):
     mcp_host: str = "0.0.0.0"
     mcp_bearer_token: str = ""
 
-    # --- Identität des Aufrufers (optional) -------------------------------
-    # Sind diese drei gesetzt, prüft der Server eingehende JWTs selbst und
-    # handelt bei InvenTree ALS DIE AUFRUFENDE PERSON, statt für alle denselben
-    # Token zu benutzen. Jede Person sieht damit ihre eigenen Daten, und es
-    # muss nirgends ein Token abgelegt werden.
+    # --- Caller identity (optional) ---------------------------------------
+    # With these three set, the server verifies incoming JWTs itself and acts
+    # AS THE CALLING PERSON against InvenTree instead of using one shared token
+    # for everyone. Each person sees their own data, and no token has to be
+    # stored anywhere.
     #
-    # Leer gelassen bleibt alles wie bisher: ein gemeinsamer inventree_token.
+    # Left empty, nothing changes: one shared inventree_token as before.
     oidc_jwks_uri: str = ""
     oidc_issuer: str = ""
     oidc_audience: str = ""
 
-    # Öffentliche Adresse dieses Servers. Nötig, damit Clients die
-    # OAuth-Metadaten finden und sich selbst beim Aussteller anmelden können.
+    # Public address of this server. Needed so clients can discover the OAuth
+    # metadata and authenticate against the issuer themselves.
     mcp_base_url: str = ""
 
-    # Claim, aus dem der InvenTree-Benutzername gelesen wird.
+    # Claim the InvenTree username is read from.
     oidc_username_claim: str = "preferred_username"
 
-    # Kopf, über den InvenTree den Benutzer entgegennimmt
-    # (INVENTREE_REMOTE_LOGIN_HEADER).
+    # Header InvenTree takes the username from (INVENTREE_REMOTE_LOGIN_HEADER).
     #
-    # Vorgabe = derselbe Kopf, den oauth2-proxy für die Browser-Anmeldung
-    # liefert. Dieser Server reiht sich damit in das vorhandene SSO ein,
-    # statt einen zweiten Mechanismus danebenzustellen.
+    # The default is deliberately the header oauth2-proxy already emits for
+    # browser SSO, so this server slots into an existing setup instead of
+    # introducing a second mechanism.
     #
-    # Für den Browser-Weg überschreibt Traefik diesen Kopf ohnehin
-    # (`authResponseHeaders` ersetzt, was ein Client mitbringt) — eingeschleust
-    # werden kann er dort also nicht. Dieser Server spricht InvenTree jedoch
-    # direkt im Cluster an, an Traefik vorbei; dort ist ER die vertrauenswürdige
-    # Stelle. Deshalb weiter unten: kein stiller Rückfall.
+    # On the browser path a reverse proxy typically replaces this header, so it
+    # cannot be injected there. This server, however, talks to InvenTree
+    # directly, bypassing the proxy — here IT is the trusted component. Hence
+    # the no-silent-fallback rule in server.py.
     inventree_remote_user_header: str = "X-Auth-Request-REMOTE_USER"
 
     @property

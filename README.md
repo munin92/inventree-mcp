@@ -81,41 +81,47 @@ See [Agent Gateway MCP Federation](https://agentgateway.dev/docs/kubernetes/late
 
 MIT
 
-## Identität des Aufrufers (optional)
+## Caller identity (optional)
 
-Standardmäßig spricht der Server InvenTree mit **einem gemeinsamen Token** —
-jeder Aufrufer sieht dasselbe.
+By default the server talks to InvenTree with **one shared token** — every
+caller sees the same data.
 
-Alternativ prüft er eingehende JWTs selbst und handelt bei InvenTree **als die
-aufrufende Person**. Dann sieht jede Person ihre eigenen Daten, und es muss
-nirgends ein Token abgelegt werden — weder auf dem Server noch beim Client.
+Alternatively it can verify incoming JWTs itself and act **as the calling
+person** against InvenTree. Each person then sees their own data, and no token
+has to be stored anywhere — neither on the server nor in a client config.
 
 ```env
 OIDC_JWKS_URI=https://keycloak.example/realms/master/protocol/openid-connect/certs
 OIDC_ISSUER=https://keycloak.example/realms/master
-OIDC_AUDIENCE=inventree-mcp
+OIDC_AUDIENCE=https://your-gateway.example/mcp
 MCP_BASE_URL=https://inventree-mcp.example
 ```
 
-Auf der InvenTree-Seite muss `INVENTREE_REMOTE_LOGIN` eingeschaltet und
-`INVENTREE_REMOTE_LOGIN_HEADER` auf denselben Kopf gesetzt sein.
+On the InvenTree side, enable `INVENTREE_REMOTE_LOGIN` and point
+`INVENTREE_REMOTE_LOGIN_HEADER` at the same header.
 
-Die Vorgabe `X-Auth-Request-REMOTE_USER` ist bewusst **derselbe Kopf, den
-oauth2-proxy für die Browser-Anmeldung liefert**. Der Server reiht sich damit in
-ein vorhandenes SSO ein, statt einen zweiten Mechanismus danebenzustellen.
+The default `X-Auth-Request-REMOTE_USER` is deliberately the header that
+oauth2-proxy already emits for browser SSO, so this server slots into an
+existing setup instead of introducing a second mechanism.
 
-### Wer darf den Kopf setzen?
+### Who may set the header?
 
-Auf dem Browser-Weg niemand außer dem Proxy: Traefiks `authResponseHeaders`
-**ersetzen**, was ein Client mitbringt. Einschleusen ist dort nicht möglich.
+On the browser path, nobody but the proxy: Traefik's `authResponseHeaders`
+**replace** whatever a client sends, so it cannot be injected there.
 
-Dieser Server spricht InvenTree jedoch direkt an, am Proxy vorbei — dort ist
-**er** die vertrauenswürdige Stelle. Wer InvenTree ebenfalls direkt erreichen
-kann, kann den Kopf ebenfalls setzen. Ob das zählt, hängt davon ab, wer in
-deinem Netz Prozesse starten kann; ein gemeinsamer API-Token wäre an derselben
-Stelle genauso lesbar.
+This server, however, talks to InvenTree directly, bypassing the proxy — here
+**it** is the trusted component. Anyone who can also reach InvenTree directly
+can set the header too. Whether that matters depends on who can run processes
+in your network; a shared API token would be just as readable in the same spot.
 
-Die drei OIDC-Angaben wirken nur gemeinsam: fehlt eine, bleibt der Server im
-alten Betrieb. Und es gibt **keinen stillen Rückfall** — ist die Prüfung an und
-der Aufrufer bringt keine verwertbare Identität mit, bricht der Aufruf ab,
-statt heimlich den gemeinsamen Token zu benutzen.
+### Two deliberate design choices
+
+**No silent fallback.** If identity checking is enabled and the caller brings no
+usable identity, the call fails. Falling back to the shared token would create a
+data separation that does not exist and that nobody would notice.
+
+**The user header replaces the token, it does not accompany it.** With both
+present, InvenTree would use the token and the separation would be void.
+
+The three OIDC settings only take effect together — two out of three leave the
+server in its previous mode rather than running it half-protected.
