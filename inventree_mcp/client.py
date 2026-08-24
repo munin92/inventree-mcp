@@ -4,12 +4,28 @@ from urllib.parse import urlparse, parse_qs
 
 
 class InvenTreeClient:
-    def __init__(self, base_url: str, token: str):
+    def __init__(
+        self,
+        base_url: str,
+        token: str = "",
+        remote_user: str = "",
+        remote_user_header: str = "X-Auth-Request-REMOTE_USER",
+    ):
+        """Talks to InvenTree either with a shared token or as a given person.
+
+        Exactly one of the two: a set `remote_user` REPLACES the token, it does
+        not accompany it. Otherwise a failed remote login would silently use the
+        shared token's permissions — a data separation that exists on paper only.
+        """
+        if not token and not remote_user:
+            raise ValueError("InvenTreeClient needs either token or remote_user")
+
         self._base_url = base_url.rstrip("/")
-        self._headers = {
-            "Authorization": f"Token {token}",
-            "Content-Type": "application/json",
-        }
+        self._headers = {"Content-Type": "application/json"}
+        if remote_user:
+            self._headers[remote_user_header] = remote_user
+        else:
+            self._headers["Authorization"] = f"Token {token}"
 
     def _url(self, path: str) -> str:
         return f"{self._base_url}{path}"
