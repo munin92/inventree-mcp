@@ -1,0 +1,38 @@
+name: Tests
+
+# Runs on every pull request and on pushes to the long-lived branches.
+# Without this, changes reached main with nothing verifying them — the other
+# three workflows only fire on release or on a push to main, and none of them
+# runs the suite.
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Floor and current: requires-python is >=3.11, so both have to work.
+        python-version: ["3.11", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Test
+        # pytest is scoped to tests/ via testpaths — smoke_test.py in the root
+        # needs a live InvenTree instance and is not part of the suite.
+        run: pytest -q

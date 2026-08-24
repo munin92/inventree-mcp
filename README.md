@@ -4,8 +4,22 @@ MCP server for [InvenTree](https://inventree.org) — exposes InvenTree inventor
 
 ## Installation
 
+> **Note:** the PyPI name `inventree-mcp` belongs to the upstream InvenTree
+> project's own MCP server, not to this one. Install from the container image
+> or from source.
+
 ```bash
-pip install inventree-mcp
+docker run -p 8001:8001 \
+  -e INVENTREE_URL=http://your-inventree:8000 \
+  -e INVENTREE_TOKEN=your-token \
+  ghcr.io/munin92/inventree-mcp:latest
+```
+
+From source:
+
+```bash
+git clone https://github.com/munin92/inventree-mcp
+cd inventree-mcp && pip install -e .
 ```
 
 ## Configuration
@@ -15,12 +29,31 @@ Set these environment variables (or create a `.env` file):
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `INVENTREE_URL` | InvenTree base URL | `http://localhost:8000` |
-| `INVENTREE_TOKEN` | API token | *(required)* |
+| `INVENTREE_TOKEN` | Shared API token | *(required unless a caller identity is used, see below)* |
 | `MCP_HOST` | Listen host | `0.0.0.0` |
 | `MCP_PORT` | Listen port | `8001` |
-| `MCP_BEARER_TOKEN` | Bearer token for MCP auth | *(optional)* |
+| `OIDC_JWKS_URI` | JWKS endpoint of the token issuer | *(optional)* |
+| `OIDC_ISSUER` | Expected `iss` claim | *(optional)* |
+| `OIDC_AUDIENCE` | Expected `aud` claim | *(optional)* |
+| `OIDC_USERNAME_CLAIM` | Claim holding the InvenTree username | `preferred_username` |
+| `MCP_BASE_URL` | Public URL of this server | *(required with OIDC)* |
+| `INVENTREE_REMOTE_USER_HEADER` | Header InvenTree reads the user from | `X-Auth-Request-REMOTE_USER` |
 
 Generate an API token in InvenTree under *Settings → User → API Tokens*.
+
+## Who is calling?
+
+Three ways, in this order of precedence:
+
+1. **`X-Inventree-Token` header** — the caller sends their own InvenTree token
+   with the request. Most specific, so it wins.
+2. **A verified JWT** — with the `OIDC_*` settings present, the server checks
+   the token itself and maps its identity claim onto an InvenTree user (see
+   below). No token is stored anywhere.
+3. **`INVENTREE_TOKEN`** from the environment — every caller sees the same data.
+
+With identity checking enabled and no caller identity at all, the call **fails**
+rather than quietly using the shared token.
 
 ## Running
 
@@ -30,15 +63,6 @@ inventree-mcp
 ```
 
 The server listens on `http://0.0.0.0:8001/mcp` by default.
-
-## Docker
-
-```bash
-docker run -p 8001:8001 \
-  -e INVENTREE_URL=http://your-inventree:8000 \
-  -e INVENTREE_TOKEN=your-token \
-  ghcr.io/munin92/inventree-mcp:latest
-```
 
 ## Available Tools
 

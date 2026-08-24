@@ -8,7 +8,6 @@ class Settings(BaseSettings):
     inventree_token: str = ""
     mcp_port: int = 8001
     mcp_host: str = "0.0.0.0"
-    mcp_bearer_token: str = ""
 
     # --- Caller identity (optional) ---------------------------------------
     # With these three set, the server verifies incoming JWTs itself and acts

@@ -45,6 +45,10 @@ dev = [
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+# smoke_test.py in the repository root talks to a live InvenTree instance and
+# fails at collection time without one. Scoping pytest to tests/ keeps a plain
+# `pytest` working for contributors and in CI.
+testpaths = ["tests"]
 
 [tool.hatch.version]
 path = "inventree_mcp/__init__.py"
