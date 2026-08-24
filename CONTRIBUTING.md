@@ -5,14 +5,16 @@ Thanks for taking a look. This is a small project, so the process is short.
 ## Getting set up
 
 ```bash
-uv venv
-uv pip install --python .venv/bin/python -e .
-uv pip install --python .venv/bin/python pytest pytest-asyncio respx
-.venv/bin/python -m pytest tests/ -q
+python -m venv .venv && . .venv/bin/activate
+pip install -e ".[dev]"
+pytest -q
 ```
 
 `smoke_test.py` in the repository root is **not** part of the suite — it talks
-to a live InvenTree instance. Run `pytest tests/` rather than `pytest`.
+to a live InvenTree instance. `testpaths` in `pyproject.toml` keeps pytest out
+of it.
+
+CI runs the same suite on Python 3.11 and 3.13 for every pull request.
 
 ## Branches and commits
 

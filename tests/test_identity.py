@@ -121,3 +121,49 @@ def test_without_identity_checking_nothing_changes(monkeypatch):
 
     c = srv.get_client()
     assert c._headers["Authorization"] == "Token gemeinsam"
+
+
+# --- Precedence between the three ways ------------------------------------
+
+
+def test_per_request_header_wins_over_jwt(monkeypatch):
+    """Handing over a token explicitly means "use exactly this one"."""
+    import inventree_mcp.server as srv
+
+    class Token:
+        claims = {"preferred_username": "nadine"}
+
+    monkeypatch.setattr(srv.settings, "oidc_jwks_uri", "https://keycloak/jwks", raising=False)
+    monkeypatch.setattr(srv.settings, "oidc_issuer", "https://keycloak", raising=False)
+    monkeypatch.setattr(srv.settings, "oidc_audience", "inventree-mcp", raising=False)
+    monkeypatch.setattr(srv, "get_access_token", lambda: Token())
+
+    tok = srv._request_token.set("caller-own-token")
+    try:
+        c = srv.get_client()
+        assert c._headers["Authorization"] == "Token caller-own-token"
+        assert "X-Auth-Request-REMOTE_USER" not in c._headers
+    finally:
+        srv._request_token.reset(tok)
+
+
+def test_per_request_header_works_without_oidc(monkeypatch):
+    """The header path must keep working on its own — it predates OIDC."""
+    import inventree_mcp.server as srv
+
+    monkeypatch.setattr(srv.settings, "oidc_jwks_uri", "", raising=False)
+    monkeypatch.setattr(srv.settings, "inventree_token", "shared", raising=False)
+
+    tok = srv._request_token.set("caller-own-token")
+    try:
+        assert srv.get_client()._headers["Authorization"] == "Token caller-own-token"
+    finally:
+        srv._request_token.reset(tok)
+
+
+def test_no_header_and_no_oidc_uses_shared_token(monkeypatch):
+    import inventree_mcp.server as srv
+
+    monkeypatch.setattr(srv.settings, "oidc_jwks_uri", "", raising=False)
+    monkeypatch.setattr(srv.settings, "inventree_token", "shared", raising=False)
+    assert srv.get_client()._headers["Authorization"] == "Token shared"
