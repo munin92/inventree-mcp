@@ -9,7 +9,7 @@ class InvenTreeClient:
         base_url: str,
         token: str = "",
         remote_user: str = "",
-        remote_user_header: str = "Remote-User",
+        remote_user_header: str = "X-Auth-Request-REMOTE_USER",
     ):
         """Spricht InvenTree entweder mit einem gemeinsamen Token oder als eine
         bestimmte Person.

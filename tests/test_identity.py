@@ -30,23 +30,30 @@ def test_identitaet_braucht_alle_drei_angaben():
 def test_client_mit_token_schickt_authorization():
     c = InvenTreeClient(base_url="http://x", token="tok")
     assert c._headers["Authorization"] == "Token tok"
-    assert "Remote-User" not in c._headers
+    assert "X-Auth-Request-REMOTE_USER" not in c._headers
 
 
 def test_client_mit_person_schickt_den_benutzerkopf():
     c = InvenTreeClient(base_url="http://x", remote_user="nadine")
-    assert c._headers["Remote-User"] == "nadine"
+    assert c._headers["X-Auth-Request-REMOTE_USER"] == "nadine"
 
 
 def test_person_ersetzt_den_token_und_ergaenzt_ihn_nicht():
     """Bliebe der Token daneben stehen, wuerde InvenTree ihn nehmen und die
     Trennung waere wirkungslos."""
     c = InvenTreeClient(base_url="http://x", token="gemeinsam", remote_user="nadine")
-    assert c._headers["Remote-User"] == "nadine"
+    assert c._headers["X-Auth-Request-REMOTE_USER"] == "nadine"
     assert "Authorization" not in c._headers
 
 
-def test_kopfname_ist_einstellbar():
+def test_vorgabe_ist_der_kopf_des_vorhandenen_sso():
+    """oauth2-proxy liefert genau diesen Kopf — der Server reiht sich ein,
+    statt einen zweiten Mechanismus danebenzustellen."""
+    c = InvenTreeClient(base_url="http://x", remote_user="marian")
+    assert c._headers["X-Auth-Request-REMOTE_USER"] == "marian"
+
+
+def test_kopfname_bleibt_einstellbar():
     c = InvenTreeClient(base_url="http://x", remote_user="marian", remote_user_header="X-Remote-User")
     assert c._headers["X-Remote-User"] == "marian"
 
@@ -101,7 +108,7 @@ def test_gueltiges_token_handelt_als_diese_person(monkeypatch):
     monkeypatch.setattr(srv, "get_access_token", lambda: Token())
 
     c = srv.get_client()
-    assert c._headers["Remote-User"] == "nadine"
+    assert c._headers["X-Auth-Request-REMOTE_USER"] == "nadine"
     assert "Authorization" not in c._headers
 
 
