@@ -78,11 +78,11 @@ async def part(
         case "suppliers":
             return await c.get_all("/api/company/part/", params={"part": pk})
         case "parameters":
-            return await c.get_all("/api/part/parameter/", params={"part": pk})
+            return await c.get_all("/api/parameter/", params={"part": pk})
         case "parameter_set":
-            return await c.post("/api/part/parameter/", json=data or {})
+            return await c.post("/api/parameter/", json=data or {})
         case "parameter_delete":
-            await c.delete(f"/api/part/parameter/{pk}/")
+            await c.delete(f"/api/parameter/{pk}/")
             return {"deleted": pk}
         case "stock_summary":
             return await c.get(f"/api/part/{pk}/")
