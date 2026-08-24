@@ -1,3 +1,17 @@
+# [1.2.0](https://github.com/munin92/inventree-mcp/compare/v1.1.0...v1.2.0) (2026-08-24)
+
+
+### Bug Fixes
+
+* pass tag value to metadata-action for workflow_dispatch ([6ea0403](https://github.com/munin92/inventree-mcp/commit/6ea04037369d9d7dde5ef8b8d2069e404612e358))
+* Vorgabe auf den Kopf des vorhandenen SSO ([32eabb2](https://github.com/munin92/inventree-mcp/commit/32eabb2f9027e193de944027af469bbdba9504ad))
+
+
+### Features
+
+* Aufrufer-Identität an InvenTree durchreichen ([4aab560](https://github.com/munin92/inventree-mcp/commit/4aab560115001c432fb4b84db1e3d8bc8bee9ff4))
+* initial inventree-mcp Docker image ([55e5259](https://github.com/munin92/inventree-mcp/commit/55e52592ebeda5a0ab27933931e315b591a26b7e))
+
 # [1.1.0](https://github.com/munin92/inventree-mcp/compare/v1.0.0...v1.1.0) (2026-04-07)
 
 
