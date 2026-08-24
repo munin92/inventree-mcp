@@ -11,16 +11,14 @@ class InvenTreeClient:
         remote_user: str = "",
         remote_user_header: str = "X-Auth-Request-REMOTE_USER",
     ):
-        """Spricht InvenTree entweder mit einem gemeinsamen Token oder als eine
-        bestimmte Person.
+        """Talks to InvenTree either with a shared token or as a given person.
 
-        Genau eines von beidem: ein gesetzter `remote_user` ersetzt den Token,
-        er ergaenzt ihn nicht. Sonst haette ein fehlgeschlagener Remote-Login
-        stillschweigend die Rechte des gemeinsamen Tokens genutzt — und die
-        Datentrennung waere eine Illusion, die niemandem auffaellt.
+        Exactly one of the two: a set `remote_user` REPLACES the token, it does
+        not accompany it. Otherwise a failed remote login would silently use the
+        shared token's permissions — a data separation that exists on paper only.
         """
         if not token and not remote_user:
-            raise ValueError("InvenTreeClient braucht entweder token oder remote_user")
+            raise ValueError("InvenTreeClient needs either token or remote_user")
 
         self._base_url = base_url.rstrip("/")
         self._headers = {"Content-Type": "application/json"}

@@ -6,10 +6,10 @@ from .client import InvenTreeClient
 
 
 def _build_auth():
-    """Baut die Aufrufer-Pruefung, wenn sie konfiguriert ist.
+    """Builds caller verification when it is configured.
 
-    Ohne Konfiguration bleibt der Server ungeschuetzt wie bisher — dann muss
-    etwas davor stehen (bei uns das MCP-Gateway).
+    Without configuration the server stays unprotected as before — something
+    else has to sit in front of it then (a gateway, a reverse proxy).
     """
     if not settings.identity_passthrough:
         return None
@@ -24,10 +24,10 @@ def _build_auth():
         audience=settings.oidc_audience,
     )
     if not settings.mcp_base_url:
-        raise ValueError("mcp_base_url ist Pflicht, wenn die Identitaetspruefung an ist")
+        raise ValueError("mcp_base_url is required when identity checking is enabled")
 
-    # RemoteAuthProvider statt nur JWTVerifier: es liefert zusaetzlich die
-    # OAuth-Metadaten, ueber die ein Client den Aussteller selbst findet.
+    # RemoteAuthProvider rather than a bare JWTVerifier: it also serves the
+    # OAuth metadata through which a client discovers the issuer itself.
     return RemoteAuthProvider(
         token_verifier=verifier,
         authorization_servers=[AnyHttpUrl(settings.oidc_issuer)],
@@ -43,28 +43,28 @@ mcp = FastMCP(
 
 
 class NotAuthenticated(RuntimeError):
-    """Der Aufrufer hat keine verwertbare Identitaet mitgebracht."""
+    """The caller brought no usable identity."""
 
 
 def get_client() -> InvenTreeClient:
-    """Liefert einen Client — je nach Betriebsart gemeinsam oder personenbezogen.
+    """Returns a client — shared or per-person, depending on the mode.
 
-    Bei eingeschalteter Identitaetspruefung wird NIE auf den gemeinsamen Token
-    zurueckgefallen: fehlt die Identitaet, bricht der Aufruf ab. Ein stiller
-    Rueckfall wuerde die Datentrennung aufheben, ohne dass es jemand merkt.
+    With identity checking on, it NEVER falls back to the shared token: if the
+    identity is missing, the call fails. A silent fallback would undo the data
+    separation without anyone noticing.
     """
     if not settings.identity_passthrough:
         return InvenTreeClient(base_url=settings.inventree_url, token=settings.inventree_token)
 
     token = get_access_token()
     if token is None:
-        raise NotAuthenticated("Kein gueltiges Token — bitte anmelden.")
+        raise NotAuthenticated("No valid token — please sign in.")
 
     username = token.claims.get(settings.oidc_username_claim)
     if not username:
         raise NotAuthenticated(
-            f"Im Token fehlt der Claim '{settings.oidc_username_claim}'; "
-            "ohne ihn kann ich dich bei InvenTree nicht zuordnen."
+            f"The token is missing the '{settings.oidc_username_claim}' claim; "
+            "without it you cannot be mapped to an InvenTree user."
         )
 
     return InvenTreeClient(
