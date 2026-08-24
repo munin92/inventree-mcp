@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/munin92/inventree-mcp/compare/v1.0.0...v1.1.0) (2026-04-07)
+
+
+### Features
+
+* per-request InvenTree token via X-Inventree-Token header ([#15](https://github.com/munin92/inventree-mcp/issues/15)) ([818f15b](https://github.com/munin92/inventree-mcp/commit/818f15b2992823b9e2396f7aa6aebc7362807fbd))
+
 # 1.0.0 (2026-03-31)
 
 
