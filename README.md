@@ -80,3 +80,42 @@ See [Agent Gateway MCP Federation](https://agentgateway.dev/docs/kubernetes/late
 ## License
 
 MIT
+
+## Identität des Aufrufers (optional)
+
+Standardmäßig spricht der Server InvenTree mit **einem gemeinsamen Token** —
+jeder Aufrufer sieht dasselbe.
+
+Alternativ prüft er eingehende JWTs selbst und handelt bei InvenTree **als die
+aufrufende Person**. Dann sieht jede Person ihre eigenen Daten, und es muss
+nirgends ein Token abgelegt werden — weder auf dem Server noch beim Client.
+
+```env
+OIDC_JWKS_URI=https://keycloak.example/realms/master/protocol/openid-connect/certs
+OIDC_ISSUER=https://keycloak.example/realms/master
+OIDC_AUDIENCE=inventree-mcp
+MCP_BASE_URL=https://inventree-mcp.example
+```
+
+Auf der InvenTree-Seite muss `INVENTREE_REMOTE_LOGIN` eingeschaltet und
+`INVENTREE_REMOTE_LOGIN_HEADER` auf denselben Kopf gesetzt sein.
+
+Die Vorgabe `X-Auth-Request-REMOTE_USER` ist bewusst **derselbe Kopf, den
+oauth2-proxy für die Browser-Anmeldung liefert**. Der Server reiht sich damit in
+ein vorhandenes SSO ein, statt einen zweiten Mechanismus danebenzustellen.
+
+### Wer darf den Kopf setzen?
+
+Auf dem Browser-Weg niemand außer dem Proxy: Traefiks `authResponseHeaders`
+**ersetzen**, was ein Client mitbringt. Einschleusen ist dort nicht möglich.
+
+Dieser Server spricht InvenTree jedoch direkt an, am Proxy vorbei — dort ist
+**er** die vertrauenswürdige Stelle. Wer InvenTree ebenfalls direkt erreichen
+kann, kann den Kopf ebenfalls setzen. Ob das zählt, hängt davon ab, wer in
+deinem Netz Prozesse starten kann; ein gemeinsamer API-Token wäre an derselben
+Stelle genauso lesbar.
+
+Die drei OIDC-Angaben wirken nur gemeinsam: fehlt eine, bleibt der Server im
+alten Betrieb. Und es gibt **keinen stillen Rückfall** — ist die Prüfung an und
+der Aufrufer bringt keine verwertbare Identität mit, bricht der Aufruf ab,
+statt heimlich den gemeinsamen Token zu benutzen.
